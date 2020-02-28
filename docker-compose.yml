@@ -1,0 +1,12 @@
+version: "3.7"
+services:
+  pigeon:
+    build: .
+    container_name: pigeon
+    ports:
+      - 80:80
+    expose:
+      - 80
+    working_dir: /pigeon
+    volumes:
+      - .:/pigeon
