@@ -1,0 +1,29 @@
+version: '{build}'
+platform: x64
+configuration: Release
+os: Visual Studio 2015
+
+clone_depth: 50
+clone_folder: c:\pigeon
+
+environment:
+  GOPATH: c:\gopath
+
+install:
+  - set PATH=C:\msys64\usr\bin;%PATH%
+  - set MSYSTEM=MINGW64
+  - bash -lc "pacman -Sy --noconfirm --needed base-devel mingw-w64-i686-toolchain mingw-w64-x86_64-toolchain git mingw-w64-i686-cmake mingw-w64-x86_64-cmake"
+
+before_build:
+  - set MSYSTEM=MINGW64
+  - cd c:\pigeon
+  - git submodule update --init --recursive
+
+build_script:
+  - set MSYSTEM=MINGW64
+  - bash -lc "export PATH=/mingw64/bin:$PATH && cd /c/pigeon/cmd/pigeon && /c/go/bin/go CGO_ENABLED=1 GO111MODULE=on go build -a -installsuffix cgo -ldflags '-s' -o pigeon-linux ."
+
+test_script:
+  - set PATH=C:\msys64\mingw64\bin;%PATH%
+  - cd c:\pigeon
+  - go test -v -race -bench -cpu=1,2,4 ./...
