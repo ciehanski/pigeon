@@ -56,21 +56,3 @@ func (p *Pigeon) chatroom(w http.ResponseWriter, r *http.Request) {
 		p.Broadcast <- msg
 	}
 }
-
-func (p *Pigeon) BroadcastMessages() {
-	for {
-		// Grab the next message from the broadcast channel
-		msg := <-p.Broadcast
-		// Send it out to every client that is currently connected
-		for client, ws := range p.Clients {
-			err := ws.WriteJSON(&msg)
-			if err != nil {
-				log.Printf("error writing JSON: %v", err)
-				if err := ws.Close(); err != nil {
-					log.Printf("error closing client: %v", err)
-				}
-				p.deleteClient(client)
-			}
-		}
-	}
-}
