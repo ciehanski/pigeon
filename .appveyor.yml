@@ -13,10 +13,6 @@ install:
   - set MSYSTEM=MINGW64
   - bash -lc "pacman -Sy --noconfirm --needed base-devel mingw-w64-i686-toolchain mingw-w64-x86_64-toolchain git mingw-w64-i686-cmake mingw-w64-x86_64-cmake"
 
-before_build:
-  - set MSYSTEM=MINGW64
-  - cd c:\pigeon
-
 build_script:
   - set MSYSTEM=MINGW64
   - bash -lc "export PATH=/mingw64/bin:$PATH && cd /c/pigeon/cmd/pigeon && /c/go/bin/go CGO_ENABLED=1 GO111MODULE=on go build -a -installsuffix cgo -ldflags '-s' -o pigeon-linux ."
