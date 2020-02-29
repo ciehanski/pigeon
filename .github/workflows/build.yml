@@ -30,13 +30,13 @@ jobs:
           go get -u -a -v -x github.com/ipsn/go-libtor
           go mod download
 
-      - name: Test
-        id: test
-        run: go test -v -race -bench -cpu=1,2,4 -covermode atomic -coverprofile=profile.cov ./...
-
       - name: Build
         id: build
         run: cd cmd/pigeon && CGO_ENABLED=1 GO111MODULE=on go build -a -installsuffix cgo -ldflags '-s' -o pigeon-linux .
+
+      - name: Test
+        id: test
+        run: go test -v -race -bench -cpu=1,2,4 -covermode atomic -coverprofile=profile.cov ./...
 
       - name: Submit Code Coverage
         id: submit-code-cov
