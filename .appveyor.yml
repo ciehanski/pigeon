@@ -15,7 +15,7 @@ install:
 
 build_script:
   - set MSYSTEM=MINGW64
-  - bash -lc "export PATH=/mingw64/bin:$PATH && cd /c/pigeon/cmd/pigeon && /c/go/bin/go CGO_ENABLED=1 GO111MODULE=on go build -a -installsuffix cgo -ldflags '-s' -o pigeon-linux ."
+  - bash -lc "export PATH=/mingw64/bin:$PATH && cd /c/pigeon/cmd/pigeon && CGO_ENABLED=1 GO111MODULE=on /c/go/bin/go build -a -installsuffix cgo -ldflags '-s' -o pigeon-windows.exe ."
 
 test_script:
   - set PATH=C:\msys64\mingw64\bin;%PATH%
