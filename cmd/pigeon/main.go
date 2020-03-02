@@ -3,8 +3,7 @@ package main
 import (
 	"context"
 	"flag"
-	"fmt"
-	"log"
+	"os"
 	"time"
 
 	"github.com/ciehanski/pigeon/pigeon"
@@ -26,20 +25,21 @@ func main() {
 	// Init Tor connection
 	t, onionSvc, err := p.Init(ctx)
 	if err != nil {
-		log.Fatalf("Error starting Tor & initializing onion service: %v", err)
+		p.Log("error starting Tor & initializing onion service: %v", err)
+		os.Exit(1)
 	}
 	defer func() {
 		if err = onionSvc.Close(); err != nil {
-			log.Fatalf("Error closing connection to onion service: %v", err)
+			p.Log("error closing connection to onion service: %v", err)
 		}
 		if err = t.Close(); err != nil {
-			log.Fatalf("Error closing connection to Tor: %v", err)
+			p.Log("error closing connection to Tor: %v", err)
 		}
 	}()
 
 	// Display the onion service URL
 	p.OnionURL = onionSvc.ID
-	fmt.Printf("Please open a Tor capable browser and navigate to http://%v.onion\n", p.OnionURL)
+	p.Logger.Printf("Please open a Tor capable browser and navigate to http://%v.onion\n", p.OnionURL)
 
 	// Start listening for incoming chat messages and broadcast them
 	go p.BroadcastMessages()
@@ -47,11 +47,11 @@ func main() {
 	srvErrCh := make(chan error, 1)
 	go func() { srvErrCh <- p.Server.Serve(onionSvc) }() // Begin serving
 	if err = <-srvErrCh; err != nil {
-		log.Fatalf("Error serving on onion service: %v", err)
+		p.Log("error serving on onion service: %v", err)
 	}
 	defer func() { // Proper server shutdown when program ends
 		if err = p.Server.Shutdown(context.Background()); err != nil {
-			log.Fatalf("Error shutting down pigeon server: %v", err)
+			p.Log("error shutting down pigeon server: %v", err)
 		}
 	}()
 }

@@ -6,7 +6,6 @@ import (
 	"github.com/google/uuid"
 )
 
-// Define our message object
 type Message struct {
 	ID        string    `json:"id"`
 	Client    *Client   `json:"client"`
