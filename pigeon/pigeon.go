@@ -17,8 +17,10 @@ type Pigeon struct {
 	Clients          map[*websocket.Conn]*Client
 	Broadcast        chan Message
 	BroadcastHistory []Message
+	Register         chan *websocket.Conn
+	Unregister       chan *websocket.Conn
 	Server           *http.Server
-	Upgrader         websocket.Upgrader
+	Upgrader         *websocket.Upgrader
 	OnionURL         string
 	RemotePort       int
 	TorVersion3      bool
@@ -29,21 +31,23 @@ type Pigeon struct {
 func (p *Pigeon) Init(ctx context.Context) (*tor.Tor, *tor.OnionService, error) {
 	// Make pigeon instance
 	p.Clients = make(map[*websocket.Conn]*Client)
-	p.Upgrader = websocket.Upgrader{
-		ReadBufferSize:    1024,
-		WriteBufferSize:   1024,
-		EnableCompression: true,
-		HandshakeTimeout:  time.Second * 10,
+	p.Register = make(chan *websocket.Conn, 5)
+	p.Unregister = make(chan *websocket.Conn, 5)
+	p.Broadcast = make(chan Message, 100)
+	p.Upgrader = &websocket.Upgrader{
+		ReadBufferSize:  1024,
+		WriteBufferSize: 1024,
+		//EnableCompression: true,
+		HandshakeTimeout: time.Second * 10,
 		CheckOrigin: func(r *http.Request) bool {
 			return true
 		},
 	}
 	if p.Debug {
-		p.Logger = log.New(os.Stdout, "[pigeon] ", log.LstdFlags)
+		p.Logger = log.New(os.Stdout, "[pigeon-debug] ", log.LstdFlags)
 	} else {
-		p.Logger = log.New(os.Stderr, "[pigeon] ", log.LstdFlags)
+		p.Logger = log.New(os.Stderr, "[pigeon] ", log.Ltime)
 	}
-	p.Broadcast = make(chan Message, 10)
 
 	// Start Tor
 	t, err := p.startTor()
@@ -77,13 +81,24 @@ func (p *Pigeon) Init(ctx context.Context) (*tor.Tor, *tor.OnionService, error) 
 func (p *Pigeon) BroadcastMessages() {
 	for {
 		select {
+		case conn := <-p.Register:
+			// Register the client
+			newClient := newClient()
+			// Add client to chatroom
+			p.Clients[conn] = newClient
+			// Broadcast that a new user has connected
+			p.Broadcast <- newMessage(newClient, "has connected.", true)
+			p.BroadcastHistory = append(p.BroadcastHistory, newMessage(newClient, "has connected.", true))
+			p.Log("client %v has connected\n", newClient.Username)
+		case conn := <-p.Unregister:
+			p.deleteClient(conn)
 		case msg := <-p.Broadcast:
 			// Send it out to every client that is currently connected
 			for ws := range p.Clients {
 				err := ws.WriteJSON(msg)
 				if err != nil {
 					p.Log("error writing JSON: %v", err)
-					p.deleteClient(ws)
+					p.Unregister <- ws
 					if err := ws.Close(); err != nil {
 						p.Log("error closing websocket: %v", err)
 					}
@@ -132,7 +147,8 @@ func (p *Pigeon) listenTor(ctx context.Context, t *tor.Tor) (*tor.OnionService, 
 }
 
 func (p *Pigeon) deleteClient(conn *websocket.Conn) {
-	p.Broadcast <- newMessage(p.Clients[conn], "has disconnected.")
-	p.BroadcastHistory = append(p.BroadcastHistory, newMessage(p.Clients[conn], "has disconnected."))
+	p.Broadcast <- newMessage(p.Clients[conn], "has disconnected.", false)
+	p.BroadcastHistory = append(p.BroadcastHistory,
+		newMessage(p.Clients[conn], "has disconnected.", false))
 	delete(p.Clients, conn)
 }
