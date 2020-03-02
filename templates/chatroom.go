@@ -18,20 +18,28 @@ const ChatroomHTML = `
 	</head>
 	<body>
 		<script>
+			<!-- store all info on current user -->
 			var me = {};
+			<!-- keep track of all connected clients -->
 			var clients = [];
+			<!-- create the websocket connection -->
 			var ws = new WebSocket('ws://' + window.location.host + '/ws');
 
 			ws.onopen = function (e) {
 				console.log('socket opened connection: ', e);
 			};
 			ws.onmessage = function (e) {
+				<!-- parse the incoming websocket message -->
 				var msg = JSON.parse(e.data);
+				<!-- parse the UTC timestamp of the message -->
 				timestamp = new Date(msg.timestamp).toLocaleString();
+				<!-- display the new message on the chatbox -->
 				document.getElementById('chatbox').value += timestamp + ' | ' + msg.client.username + ': ' + msg.message + '\n';
 
+				<!-- if client is new, add them to the clients array -->
 				var match = false;
 				if (clients != null) {
+					<!-- loop through client array -->
 					clients.forEach((c) => {
 						if (c.id == me.id) {
 							match = true;
@@ -39,7 +47,9 @@ const ChatroomHTML = `
 					});
 					if (!match) {
 						if (msg.client.username !== '') {
+							<!-- add user to clients array -->
 							clients.push({id: msg.client.id, username: msg.client.username});
+							<!-- update clients textbox to reflect new user -->
 							document.getElementById('clients').value += msg.client.username + '\n';
 						};
 					};
@@ -47,7 +57,9 @@ const ChatroomHTML = `
 			};
 			ws.onclose = function (e) {
 				console.log('socket closed connection: ', e);
+				<!-- disable the send button if connection is closed -->
 				document.getElementById("send").onclick = '';
+				<!-- remove the client from the clients array -->
 				clients.forEach((c) => {
 					if (c.id == me.id) {
 						clients.splice(index, 1);
@@ -59,18 +71,32 @@ const ChatroomHTML = `
 			};
 
 			function send() {
+				<!-- check if websocket is ready -->
 				if (ws.readyState != WebSocket.OPEN) {
 					console.error("websocket is not open: " + ws.readyState);
 					return;
 				};
+				<!-- confirm message textbox is not empty -->
 				if (document.getElementById('message').value === '') {
 					return;
 				};
+				<!-- send message to websocket -->
 				var msgText = document.getElementById('message').value;
 				var msg = {client: {id: me.id, username: me.username}, message: msgText};
 				ws.send(JSON.stringify(msg));
+				<!-- reset the message textbox value -->
 				document.getElementById('message').value = '';
+				<!-- focus on message textbox -->
 				document.getElementById('message').focus();
+			};
+
+			<!-- handle enter key press on message textbox -->
+			function enter(event) {
+				if (event.which == 13 || event.keyCode == 13) {
+        			send();
+        			return false;
+    			}
+    			return true;
 			};
 		</script>
 		<br><br><br><br>
@@ -85,7 +111,7 @@ const ChatroomHTML = `
 							<p id="typing" class="help"></p>
 							<div class="field has-addons">
 								<p class="control is-expanded">
-									<input id="message" class="input" type="text" placeholder="Break the rules..." autofocus>
+									<input id="message" class="input" type="text" placeholder="Break the rules..." onkeypress="return enter(event)" autofocus>
 								</p>
 								<p class="control">
 									<a id="send" class="button is-link" onclick="send();">Send</a>
