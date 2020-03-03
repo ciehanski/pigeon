@@ -1,11 +1,9 @@
 package pigeon
 
 import (
+	"github.com/ciehanski/pigeon/templates"
 	"html/template"
 	"net/http"
-	"time"
-
-	"github.com/ciehanski/pigeon/templates"
 )
 
 func (p *Pigeon) chatroom(w http.ResponseWriter, r *http.Request) {
@@ -37,9 +35,6 @@ func (p *Pigeon) websocket(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
-	// Add the connection to the register channel
-	p.Register <- ws
-
 	// Print messages sent prior in this session
 	for _, m := range p.BroadcastHistory {
 		if err := ws.WriteJSON(m); err != nil {
@@ -48,17 +43,8 @@ func (p *Pigeon) websocket(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Set cookie identifying user
-	http.SetCookie(w, &http.Cookie{
-		Name:     "clientID",
-		Value:    p.Clients[ws].ID,
-		Path:     "/",
-		Domain:   p.OnionURL,
-		Expires:  time.Now().Add(time.Minute * 60),
-		Secure:   false,
-		HttpOnly: false,
-		SameSite: http.SameSiteStrictMode,
-	})
+	// Add the connection to the register channel
+	p.Register <- ws
 
 	// Digest messages
 	for {
@@ -75,7 +61,7 @@ func (p *Pigeon) websocket(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 		// Add new messages to broadcast history for new users
-		p.appendToHistory(msg)
+		p.BroadcastHistory = append(p.BroadcastHistory, msg)
 		// Send the newly received message to the broadcast channel
 		p.Broadcast <- msg
 	}
