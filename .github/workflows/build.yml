@@ -34,10 +34,6 @@ jobs:
         id: build-linux
         run: cd cmd/pigeon && CGO_ENABLED=1 GO111MODULE=on go build -a -installsuffix cgo -ldflags '-s' -o pigeon-linux-amd64 .
 
-      - name: Build MacOS
-        id: build-macos
-        run: cd cmd/pigeon && GOOS=darwin GOARCH=amd64 CGO_ENABLED=1 GO111MODULE=on go build -a -installsuffix cgo -ldflags '-s' -o pigeon-darwin-amd64 .
-
       - name: Test
         id: test
         run: go test -v -race -bench -cpu=1,2,4 -covermode atomic -coverprofile=profile.cov ./...
@@ -56,12 +52,4 @@ jobs:
         uses: actions/upload-artifact@v1.0.0
         with:
           name: pigeon-linux-amd64
-          path: cmd/pigeon
-
-      - name: Upload MacOS Artifact
-        id: upload-darwin-artifact
-        if: success() || failure()
-        uses: actions/upload-artifact@v1.0.0
-        with:
-          name: pigeon-macos-amd64
           path: cmd/pigeon
