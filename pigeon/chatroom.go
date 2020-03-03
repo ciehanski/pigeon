@@ -62,7 +62,7 @@ func (p *Pigeon) websocket(w http.ResponseWriter, r *http.Request) {
 
 	// Digest messages
 	for {
-		msg := newMessage(nil, "", false)
+		msg := newMessage(Client{}, "", false)
 		// Read in a new message as JSON and map it to a Message object
 		err := ws.ReadJSON(&msg)
 		if err != nil {

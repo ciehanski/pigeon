@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"runtime"
+	"strings"
 	"time"
 
 	"github.com/cretz/bine/tor"
@@ -16,7 +17,7 @@ import (
 // Pigeon is the object that stores all clients, messages, and
 // configuration options.
 type Pigeon struct {
-	Clients          map[*websocket.Conn]*Client
+	Clients          map[*websocket.Conn]Client
 	Broadcast        chan Message
 	BroadcastHistory []Message
 	Register         chan *websocket.Conn
@@ -33,10 +34,10 @@ type Pigeon struct {
 // Init initializes the pigeon object and all of its options and dependencies.
 func (p *Pigeon) Init(ctx context.Context) (*tor.Tor, *tor.OnionService, error) {
 	// Make pigeon instance
-	p.Clients = make(map[*websocket.Conn]*Client)
-	p.Register = make(chan *websocket.Conn, 1)
-	p.Unregister = make(chan *websocket.Conn, 1)
-	p.Broadcast = make(chan Message, 1)
+	p.Clients = make(map[*websocket.Conn]Client)
+	p.Register = make(chan *websocket.Conn, 10)
+	p.Unregister = make(chan *websocket.Conn, 10)
+	p.Broadcast = make(chan Message, 10)
 	p.Upgrader = &websocket.Upgrader{
 		ReadBufferSize:    1024,
 		WriteBufferSize:   1024,
@@ -90,25 +91,31 @@ func (p *Pigeon) BroadcastMessages() {
 			// Register the client
 			newClient := newClient()
 			// Add client to chatroom
-			// TODO: data race
 			p.Clients[conn] = newClient
-			//
 			// Broadcast that a new user has connected
 			connMsg := newMessage(newClient, "has connected.", true)
 			// Toss connMsg into the Broadcast channel to be sent to all other clients
 			p.Broadcast <- connMsg
 			// Add message to broadcast history
-			p.appendToHistory(connMsg)
+			p.BroadcastHistory = append(p.BroadcastHistory, connMsg)
+			// Log it!
 			p.Log("client %v has connected\n", newClient.Username)
 		case conn := <-p.Unregister:
 			dconnMsg := newMessage(p.Clients[conn], "has disconnected.", false)
 			// Toss dconnMsg into the Broadcast channel to be sent to all other clients
 			p.Broadcast <- dconnMsg
 			// Add message to broadcast history
-			p.appendToHistory(dconnMsg)
+			p.BroadcastHistory = append(p.BroadcastHistory, dconnMsg)
+			// Log it!
 			p.Log("client %v has disconnected\n", p.Clients[conn].Username)
 			// Remove client from clients map
 			delete(p.Clients, conn)
+			// Close the socket
+			if err := conn.Close(); err != nil {
+				if !strings.Contains(err.Error(), "use of closed network connection") {
+					p.Log("error closing websocket: %v", err)
+				}
+			}
 		case msg := <-p.Broadcast:
 			// Send it out to every client that is currently connected
 			for ws := range p.Clients {
@@ -130,12 +137,6 @@ func (p *Pigeon) Log(str string, args ...interface{}) {
 	if p.Debug {
 		p.Logger.Printf(str, args...)
 	}
-}
-
-func (p *Pigeon) appendToHistory(msg Message) {
-	// TODO: data race
-	p.BroadcastHistory = append(p.BroadcastHistory, msg)
-	//
 }
 
 func (p *Pigeon) startTor() (*tor.Tor, error) {

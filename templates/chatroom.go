@@ -13,13 +13,17 @@ const ChatroomHTML = `
 	<body>
 		<script>
 			var me = {};
-			var cookie = document.cookie.split(/[;] */).reduce(function(result, pairStr) {
-				var arr = pairStr.split('='); 
-				if (arr.length === 2) { result[arr[0]] = arr[1]; }
-			  	return result;
+			var cookie = document.cookie.split(/; */).reduce((obj, str) => {
+				if (str === "") return obj;
+				const eq = str.indexOf('=');
+				const key = eq > 0 ? str.slice(0, eq) : str;
+				let val = eq > 0 ? str.slice(eq + 1) : null;
+				if (val != null) try { val = decodeURIComponent(val); } catch(ex) { /* pass */ }
+				obj[key] = val;
+				return obj;
 			}, {});
 			console.log(cookie);
-			me = cookie.clientID;
+			me = {id: cookie.clientID, username: ''};
 			<!-- keep track of all connected clients -->
 			var clients = [];
 			<!-- create the websocket connection -->
@@ -55,12 +59,18 @@ const ChatroomHTML = `
 				if (!disconnect) {
 					<!-- if client is first, set current user var and add them to the clients array -->
 					if (!clients.length) {
+						<!-- since we're the only user -->
+						me.username = msg.client.username;
 						<!-- add current user to clients array -->
 						clients.push({id: me.id, username: me.username});
 						<!-- update clients textbox to reflect new user -->
 						document.getElementById('clients').value += me.username + '\n';
 					<!-- if clients array is not null check if client should be added to clients list -->
 					} else if (clients.length > 0) {
+						<!-- check if the cookie ID matches the message's client ID -->
+						if (msg.client.id === me.id) {
+							me.username = msg.client.username;
+						};
 						var match = false;
 						clients.forEach((c) => {
 							if (msg.client.id === c.id) {
@@ -69,7 +79,7 @@ const ChatroomHTML = `
 						});
 						if (!match) {
 							<!-- add user to clients array -->
-							clients.push({id: me.id, username: msg.client.username});
+							clients.push({id: msg.client.id, username: msg.client.username});
 							<!-- update clients textbox to reflect new user -->
 							document.getElementById('clients').value += msg.client.username + '\n';
 						};
@@ -123,7 +133,7 @@ const ChatroomHTML = `
 				errDiv.classList.add('is-danger');
 				errDiv.classList.add('notif');
 				<!-- create X button -->
-				var delButton = document.createElement('button');
+				var delButton = document.createElement('BUTTON');
 				delButton.classList.add('delete');
 				errDiv.appendChild(delButton);
 				errDiv.innerHTML = errMsg;
@@ -139,16 +149,6 @@ const ChatroomHTML = `
     			}
     			return true;
 			};
-
-			<!-- parse cookie -->
-			function parseCookie() = str =>
-				str
-					.split(';')
-					.map(v => v.split('='))
-					.reduce((acc, v) => {
-				 		 acc[decodeURIComponent(v[0].trim())] = decodeURIComponent(v[1].trim());
-			  		return acc;
-				}, {});
 		</script>
 
 		<br><br><br><br>

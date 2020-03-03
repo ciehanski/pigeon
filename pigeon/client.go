@@ -14,8 +14,8 @@ type Client struct {
 	ConnectedAt time.Time `json:"connected_at"`
 }
 
-func newClient() *Client {
-	return &Client{
+func newClient() Client {
+	return Client{
 		ID:          uuid.New().String(),
 		Username:    randomdata.SillyName(),
 		ConnectedAt: time.Now(),
