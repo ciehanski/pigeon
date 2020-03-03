@@ -12,8 +12,13 @@ const ChatroomHTML = `
 	<body>
 		<script>
 			var me = {};
-			var cookie = document.cookie;
+			var cookie = document.cookie.split(/[;] */).reduce(function(result, pairStr) {
+				var arr = pairStr.split('='); 
+				if (arr.length === 2) { result[arr[0]] = arr[1]; }
+			  	return result;
+			}, {});
 			console.log(cookie);
+			me = cookie.clientID;
 			<!-- keep track of all connected clients -->
 			var clients = [];
 			<!-- create the websocket connection -->
@@ -34,7 +39,7 @@ const ChatroomHTML = `
 				var disconnect = false;
 				if (!msg.connected) {
 					<!-- remove client from clients array -->
-					clients.slice(clients.indexOf(msg.client));
+					clients.slice(clients.indexOf(msg.client), 1);
 					<!-- remove client from clients list -->
 					document.getElementById('clients').value = '';
 					<!-- update clients list -->
@@ -49,8 +54,6 @@ const ChatroomHTML = `
 				if (!disconnect) {
 					<!-- if client is first, set current user var and add them to the clients array -->
 					if (!clients.length) {
-						<!-- set current user -->
-						me = msg.client;
 						<!-- add current user to clients array -->
 						clients.push({id: me.id, username: me.username});
 						<!-- update clients textbox to reflect new user -->
@@ -135,6 +138,16 @@ const ChatroomHTML = `
     			}
     			return true;
 			};
+
+			<!-- parse cookie -->
+			function parseCookie() = str =>
+				str
+					.split(';')
+					.map(v => v.split('='))
+					.reduce((acc, v) => {
+				 		 acc[decodeURIComponent(v[0].trim())] = decodeURIComponent(v[1].trim());
+			  		return acc;
+				}, {});
 		</script>
 
 		<br><br><br><br>
@@ -149,7 +162,7 @@ const ChatroomHTML = `
 							<p id="typing" class="help"></p>
 							<div class="field has-addons">
 								<p class="control is-expanded">
-									<input id="message" class="input" type="text" placeholder="Break the rules..." onkeypress="return enter(event)" autofocus>
+									<input id="message" class="input" type="text" placeholder="Type a message..." onkeypress="return enter(event)" autofocus>
 								</p>
 								<p class="control">
 									<a id="send" class="button is-link" onclick="send();">Send</a>

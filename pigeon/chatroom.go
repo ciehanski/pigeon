@@ -1,10 +1,11 @@
 package pigeon
 
 import (
-	"github.com/ciehanski/pigeon/templates"
 	"html/template"
 	"net/http"
 	"time"
+
+	"github.com/ciehanski/pigeon/templates"
 )
 
 func (p *Pigeon) chatroom(w http.ResponseWriter, r *http.Request) {

@@ -32,7 +32,10 @@ jobs:
 
       - name: Build
         id: build
-        run: cd cmd/pigeon && CGO_ENABLED=1 GO111MODULE=on go build -a -installsuffix cgo -ldflags '-s' -o pigeon-linux .
+        run: |
+          cd cmd/pigeon && GOOS=linux GOARCH=amd64 CGO_ENABLED=1 GO111MODULE=on go build -a -installsuffix cgo -ldflags '-s' -o pigeon-linux-amd64 .
+          cd cmd/pigeon && GOOS=darwin GOARCH=amd64 CGO_ENABLED=1 GO111MODULE=on go build -a -installsuffix cgo -ldflags '-s' -o pigeon-macos-amd64 .
+          cd cmd/pigeon && GOOS=windows GOARCH=amd64 CGO_ENABLED=1 GO111MODULE=on go build -a -installsuffix cgo -ldflags '-s' -o pigeon-windows-amd64.exe .
 
       - name: Test
         id: test
@@ -46,9 +49,23 @@ jobs:
           GO111MODULE=off go get -u github.com/mattn/goveralls
           $(go env GOPATH)/bin/goveralls -service=github -coverprofile=profile.cov
 
-      - name: Upload Artifact
-        id: upload-artifact
+      - name: Upload Linux Artifact
+        id: upload-linux-artifact
         uses: actions/upload-artifact@v1.0.0
         with:
-          name: pigeon-linux
+          name: pigeon-linux-amd64
+          path: cmd/pigeon
+
+      - name: Upload MacOS Artifact
+        id: upload-darwin-artifact
+        uses: actions/upload-artifact@v1.0.0
+        with:
+          name: pigeon-macos-amd64
+          path: cmd/pigeon
+
+      - name: Upload Windows Artifact
+        id: upload-windows-artifact
+        uses: actions/upload-artifact@v1.0.0
+        with:
+          name: pigeon-windows-amd64.exe
           path: cmd/pigeon
