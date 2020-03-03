@@ -35,5 +35,53 @@ in handy. :)
 pigeon -debug
 ```
 
+## Contributing:
+
+Any pull request submitted must meet the following requirements:
+- Have included tests applicable to the relevant PR.
+- Attempt to adhere to the standard library as much as possible.
+
+You can get started by either forking or cloning the repo. After, you can get started
+by running:
+
+```bash
+make run
+```
+
+This will go ahead and build everything necessary to interface with Tor. After compose
+has completed building, you will have a new `pigeon` container which will be your
+dev environment.
+
+Anytime a change to a .go or .mod file is detected the container will rerun with
+the changes you have made. You must save in your IDE or text editor for the 
+changes to be picked up. It takes roughly ~30 seconds for pigeon to restart after 
+you have made changes.
+
+You can completely restart the build with:
+```bash
+make restart
+```
+
+Run tests:
+```bash
+make exec
+make test
+```
+
+Get container logs:
+```bash
+make logs
+```
+
+Shell into docker container:
+```bash
+make exec
+```
+
+Lint the project:
+```bash
+make lint
+```
+
 ## License
 - MIT
