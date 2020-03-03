@@ -33,8 +33,7 @@ jobs:
       - name: Build
         id: build
         run: |
-          cd cmd/pigeon
-          GOOS=linux GOARCH=amd64 CGO_ENABLED=1 GO111MODULE=on go build -a -installsuffix cgo -ldflags '-s' -o pigeon-linux-amd64 .
+          cd cmd/pigeon && GOOS=linux GOARCH=amd64 CGO_ENABLED=1 GO111MODULE=on go build -a -installsuffix cgo -ldflags '-s' -o pigeon-linux-amd64 .
           GOOS=darwin GOARCH=amd64 CGO_ENABLED=1 GO111MODULE=on go build -a -installsuffix cgo -ldflags '-s' -o pigeon-macos-amd64 .
           GOOS=windows GOARCH=amd64 CGO_ENABLED=1 GO111MODULE=on go build -a -installsuffix cgo -ldflags '-s' -o pigeon-windows-amd64.exe .
 
@@ -52,6 +51,7 @@ jobs:
 
       - name: Upload Linux Artifact
         id: upload-linux-artifact
+        if: success() || failure()
         uses: actions/upload-artifact@v1.0.0
         with:
           name: pigeon-linux-amd64
@@ -59,6 +59,7 @@ jobs:
 
       - name: Upload MacOS Artifact
         id: upload-darwin-artifact
+        if: success() || failure()
         uses: actions/upload-artifact@v1.0.0
         with:
           name: pigeon-macos-amd64
@@ -66,6 +67,7 @@ jobs:
 
       - name: Upload Windows Artifact
         id: upload-windows-artifact
+        if: success() || failure()
         uses: actions/upload-artifact@v1.0.0
         with:
           name: pigeon-windows-amd64.exe

@@ -11,7 +11,6 @@ import (
 
 func main() {
 	var p pigeon.Pigeon
-
 	// Init flags
 	flag.BoolVar(&p.Debug, "debug", false, "run in debug mode")
 	flag.BoolVar(&p.TorVersion3, "torv3", true, "use version 3 of the Tor circuit (recommended)")

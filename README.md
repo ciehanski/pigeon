@@ -6,5 +6,34 @@ works without issue on Tor's strictest settings. The frontend is
 built with [Bulma](https://bulma.io/) and vanilla JavaScript. All 
 JavaScript code is well-documented and can be found [here](https://github.com/ciehanski/pigeon/blob/master/templates/chatroom.go).
 
+## Flags
+
+#### Tor Version
+
+Modify if pigeon will utilize Tor version 3. By default is true.
+
+```bash
+pigeon -torv3 false
+```
+
+#### Remote Port
+
+Modify the port used to connect to the Tor hidden service. By
+default is 80.
+
+```bash
+pigeon -port 8080
+```
+
+#### Debug
+
+Runs pigeon in debug mode. If you want to stare at endless prompts
+make sure to set this flag. If you're contributing this may come
+in handy. :)
+
+```bash
+pigeon -debug
+```
+
 ## License
 - MIT
