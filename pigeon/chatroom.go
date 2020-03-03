@@ -1,10 +1,10 @@
 package pigeon
 
 import (
+	"github.com/ciehanski/pigeon/templates"
 	"html/template"
 	"net/http"
-
-	"github.com/ciehanski/pigeon/templates"
+	"time"
 )
 
 func (p *Pigeon) chatroom(w http.ResponseWriter, r *http.Request) {
@@ -42,10 +42,22 @@ func (p *Pigeon) websocket(w http.ResponseWriter, r *http.Request) {
 	// Print messages sent prior in this session
 	for _, m := range p.BroadcastHistory {
 		if err := ws.WriteJSON(m); err != nil {
-			p.Log("error writing to websocket: %v", err)
+			p.Log("error writing JSON to websocket: %v", err)
 			return
 		}
 	}
+
+	// Set cookie identifying user
+	http.SetCookie(w, &http.Cookie{
+		Name:     "clientID",
+		Value:    p.Clients[ws].ID,
+		Path:     "/",
+		Domain:   p.OnionURL,
+		Expires:  time.Now().Add(time.Minute * 60),
+		Secure:   false,
+		HttpOnly: false,
+		SameSite: http.SameSiteStrictMode,
+	})
 
 	// Digest messages
 	for {
@@ -53,12 +65,16 @@ func (p *Pigeon) websocket(w http.ResponseWriter, r *http.Request) {
 		// Read in a new message as JSON and map it to a Message object
 		err := ws.ReadJSON(&msg)
 		if err != nil {
-			p.Log("error reading message from websocket: %v", err)
+			if err.Error() == "websocket: close 1001 (going away)" {
+				p.Log("client %v has disconnected\n", msg.Client.Username)
+			} else {
+				p.Log("error reading message from websocket: %v", err)
+			}
 			p.Unregister <- ws
 			break
 		}
 		// Add new messages to broadcast history for new users
-		p.BroadcastHistory = append(p.BroadcastHistory, msg)
+		p.appendToHistory(msg)
 		// Send the newly received message to the broadcast channel
 		p.Broadcast <- msg
 	}

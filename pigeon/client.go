@@ -1,9 +1,10 @@
 package pigeon
 
 import (
+	"time"
+
 	"github.com/Pallinder/go-randomdata"
 	"github.com/google/uuid"
-	"time"
 )
 
 type Client struct {

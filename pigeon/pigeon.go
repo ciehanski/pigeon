@@ -31,14 +31,14 @@ type Pigeon struct {
 func (p *Pigeon) Init(ctx context.Context) (*tor.Tor, *tor.OnionService, error) {
 	// Make pigeon instance
 	p.Clients = make(map[*websocket.Conn]*Client)
-	p.Register = make(chan *websocket.Conn, 5)
-	p.Unregister = make(chan *websocket.Conn, 5)
-	p.Broadcast = make(chan Message, 100)
+	p.Register = make(chan *websocket.Conn, 1)
+	p.Unregister = make(chan *websocket.Conn, 1)
+	p.Broadcast = make(chan Message, 1)
 	p.Upgrader = &websocket.Upgrader{
-		ReadBufferSize:  1024,
-		WriteBufferSize: 1024,
-		//EnableCompression: true,
-		HandshakeTimeout: time.Second * 10,
+		ReadBufferSize:    1024,
+		WriteBufferSize:   1024,
+		EnableCompression: true,
+		HandshakeTimeout:  time.Second * 12,
 		CheckOrigin: func(r *http.Request) bool {
 			return true
 		},
@@ -46,7 +46,7 @@ func (p *Pigeon) Init(ctx context.Context) (*tor.Tor, *tor.OnionService, error) 
 	if p.Debug {
 		p.Logger = log.New(os.Stdout, "[pigeon-debug] ", log.LstdFlags)
 	} else {
-		p.Logger = log.New(os.Stderr, "[pigeon] ", log.Ltime)
+		p.Logger = log.New(os.Stderr, "[pigeon] ", log.LstdFlags)
 	}
 
 	// Start Tor
@@ -74,7 +74,6 @@ func (p *Pigeon) Init(ctx context.Context) (*tor.Tor, *tor.OnionService, error) 
 		WriteTimeout: time.Minute * 3,
 		Handler:      rtr,
 	}
-
 	return t, onionSvc, nil
 }
 
@@ -85,19 +84,31 @@ func (p *Pigeon) BroadcastMessages() {
 			// Register the client
 			newClient := newClient()
 			// Add client to chatroom
+			// TODO: data race
 			p.Clients[conn] = newClient
+			//
 			// Broadcast that a new user has connected
-			p.Broadcast <- newMessage(newClient, "has connected.", true)
-			p.BroadcastHistory = append(p.BroadcastHistory, newMessage(newClient, "has connected.", true))
+			connMsg := newMessage(newClient, "has connected.", true)
+			// Toss connMsg into the Broadcast channel to be sent to all other clients
+			p.Broadcast <- connMsg
+			// Add message to broadcast history
+			p.appendToHistory(connMsg)
 			p.Log("client %v has connected\n", newClient.Username)
 		case conn := <-p.Unregister:
-			p.deleteClient(conn)
+			dconnMsg := newMessage(p.Clients[conn], "has disconnected.", false)
+			// Toss dconnMsg into the Broadcast channel to be sent to all other clients
+			p.Broadcast <- dconnMsg
+			// Add message to broadcast history
+			p.appendToHistory(dconnMsg)
+			p.Log("client %v has disconnected\n", p.Clients[conn].Username)
+			// Remove client from clients map
+			delete(p.Clients, conn)
 		case msg := <-p.Broadcast:
 			// Send it out to every client that is currently connected
 			for ws := range p.Clients {
 				err := ws.WriteJSON(msg)
 				if err != nil {
-					p.Log("error writing JSON: %v", err)
+					p.Log("error writing JSON to websocket: %v", err)
 					p.Unregister <- ws
 					if err := ws.Close(); err != nil {
 						p.Log("error closing websocket: %v", err)
@@ -114,12 +125,18 @@ func (p *Pigeon) Log(str string, args ...interface{}) {
 	}
 }
 
+func (p *Pigeon) appendToHistory(msg Message) {
+	// TODO: data race
+	p.BroadcastHistory = append(p.BroadcastHistory, msg)
+	//
+}
+
 func (p *Pigeon) startTor() (*tor.Tor, error) {
 	var tempDataDir string
 	if runtime.GOOS != "windows" {
-		tempDataDir = "/tmp"
+		tempDataDir = "/tmp/pigeon"
 	} else {
-		tempDataDir = "%TEMP%"
+		tempDataDir = `%TEMP%\pigeon`
 	}
 
 	t, err := tor.Start(nil, &tor.StartConf{ // Start tor
@@ -127,6 +144,7 @@ func (p *Pigeon) startTor() (*tor.Tor, error) {
 		DebugWriter:            p.Logger.Writer(),
 		UseEmbeddedControlConn: runtime.GOOS != "windows", // This option is not supported on Windows
 		TempDataDirBase:        tempDataDir,
+		DataDir:                tempDataDir,
 		RetainTempDataDir:      false,
 	})
 	if err != nil {
@@ -144,11 +162,4 @@ func (p *Pigeon) listenTor(ctx context.Context, t *tor.Tor) (*tor.OnionService, 
 		return nil, err
 	}
 	return onionSvc, nil
-}
-
-func (p *Pigeon) deleteClient(conn *websocket.Conn) {
-	p.Broadcast <- newMessage(p.Clients[conn], "has disconnected.", false)
-	p.BroadcastHistory = append(p.BroadcastHistory,
-		newMessage(p.Clients[conn], "has disconnected.", false))
-	delete(p.Clients, conn)
 }
