@@ -1,5 +1,6 @@
 package templates
 
+// ChatroomHTML is the embedded HTML with inline JavaScript for the chatroom page.
 const ChatroomHTML = `
 <html lang="en">
 	<head>

@@ -6,6 +6,8 @@ import (
 	"github.com/google/uuid"
 )
 
+// Message contains all fields required to send a message
+// with pigeon.
 type Message struct {
 	ID        string    `json:"id"`
 	Client    *Client   `json:"client"`

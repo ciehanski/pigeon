@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 )
 
+// Client contains all fields required for pigeon.
 type Client struct {
 	ID          string    `json:"id"`
 	Username    string    `json:"username"`

@@ -13,6 +13,8 @@ import (
 	"github.com/ipsn/go-libtor"
 )
 
+// Pigeon is the object that stores all clients, messages, and
+// configuration options.
 type Pigeon struct {
 	Clients          map[*websocket.Conn]*Client
 	Broadcast        chan Message
@@ -28,6 +30,7 @@ type Pigeon struct {
 	Debug            bool
 }
 
+// Init initializes the pigeon object and all of its options and dependencies.
 func (p *Pigeon) Init(ctx context.Context) (*tor.Tor, *tor.OnionService, error) {
 	// Make pigeon instance
 	p.Clients = make(map[*websocket.Conn]*Client)
@@ -77,6 +80,9 @@ func (p *Pigeon) Init(ctx context.Context) (*tor.Tor, *tor.OnionService, error) 
 	return t, onionSvc, nil
 }
 
+// BroadcastMessages continuously loops and checks if it needs to add
+// a new client, remove a current client, or broadcast any message received
+//from a client to all other clients.
 func (p *Pigeon) BroadcastMessages() {
 	for {
 		select {
@@ -119,6 +125,7 @@ func (p *Pigeon) BroadcastMessages() {
 	}
 }
 
+// Log is a helper function to only log if debug is enabled.
 func (p *Pigeon) Log(str string, args ...interface{}) {
 	if p.Debug {
 		p.Logger.Printf(str, args...)
