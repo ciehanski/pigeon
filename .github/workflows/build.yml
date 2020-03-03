@@ -30,11 +30,13 @@ jobs:
           go get -u -a -v -x github.com/ipsn/go-libtor
           go mod download
 
-      - name: Build
-        id: build
-        run: |
-          cd cmd/pigeon && CGO_ENABLED=1 GO111MODULE=on go build -a -installsuffix cgo -ldflags '-s' -o pigeon-linux-amd64 .
-          GOOS=darwin GOARCH=amd64 CGO_ENABLED=1 GO111MODULE=on go build -a -installsuffix cgo -ldflags '-s' -o pigeon-macos-amd64 .
+      - name: Build Linux
+        id: build-linux
+        run: cd cmd/pigeon && CGO_ENABLED=1 GO111MODULE=on go build -a -installsuffix cgo -ldflags '-s' -o pigeon-linux-amd64 .
+
+      - name: Build MacOS
+        id: build-macos
+        run: cd cmd/pigeon && GOOS=darwin GOARCH=amd64 CGO_ENABLED=1 GO111MODULE=on go build -a -installsuffix cgo -ldflags '-s' -o pigeon-darwin-amd64 .
 
       - name: Test
         id: test
