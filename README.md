@@ -84,4 +84,4 @@ make lint
 ```
 
 ## License
-- MIT
+- AGPLv3
