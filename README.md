@@ -1,4 +1,5 @@
 # pigeon [![Build Status](https://github.com/ciehanski/pigeon/workflows/build/badge.svg)](https://github.com/ciehanski/pigeon/actions) [![Coverage Status](https://coveralls.io/repos/github/ciehanski/pigeon/badge.svg?branch=master)](https://coveralls.io/github/ciehanski/pigeon?branch=master) [![Go Report Card](https://goreportcard.com/badge/github.com/ciehanski/pigeon)](https://goreportcard.com/report/github.com/ciehanski/pigeon)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fciehanski%2Fpigeon.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fciehanski%2Fpigeon?ref=badge_shield)
 
 pigeon is an instant messaging service built utilizing WebSockets 
 and Tor hidden services as the transport mechanism. pigeon also
@@ -85,3 +86,6 @@ make lint
 
 ## License
 - AGPLv3
+
+
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fciehanski%2Fpigeon.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fciehanski%2Fpigeon?ref=badge_large)
