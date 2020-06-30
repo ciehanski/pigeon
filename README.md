@@ -1,4 +1,4 @@
-# pigeon [![Build Status](https://github.com/ciehanski/pigeon/workflows/build/badge.svg)](https://github.com/ciehanski/pigeon/actions) [![Coverage Status](https://coveralls.io/repos/github/ciehanski/pigeon/badge.svg?branch=master)](https://coveralls.io/github/ciehanski/pigeon?branch=master) [![Go Report Card](https://goreportcard.com/badge/github.com/ciehanski/pigeon)](https://goreportcard.com/report/github.com/ciehanski/pigeon)
+# pigeon [![Build Status](https://github.com/ciehanski/pigeon/workflows/build/badge.svg)](https://github.com/ciehanski/pigeon/actions) [![Coverage Status](https://coveralls.io/repos/github/ciehanski/pigeon/badge.svg?branch=master)](https://coveralls.io/github/ciehanski/pigeon?branch=master) [![Go Report Card](https://goreportcard.com/badge/github.com/ciehanski/pigeon)](https://goreportcard.com/report/github.com/ciehanski/pigeon) [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fciehanski%2Fpigeon.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fciehanski%2Fpigeon?ref=badge_shield)
 
 pigeon is an instant messaging service built utilizing WebSockets 
 and Tor hidden services as the transport mechanism. pigeon also
@@ -6,40 +6,38 @@ works without issue on Tor's strictest settings. The frontend is
 built with [Bulma](https://bulma.io/) and vanilla JavaScript. All 
 JavaScript code is well-documented and can be found [here](https://github.com/ciehanski/pigeon/blob/master/templates/chatroom.go).
 
-## Flags
+![pigeon Example](./.github/assets/homepage.png)
 
-#### Tor Version
+## Build/Install
 
-Modify if pigeon will utilize Tor version 3. By default is true.
+You will need the the [Go toolchain](https://golang.org/dl/). Sadly, this will not 
+work with Windows or macOS. You can build from source with the `Makefile`:
 
 ```bash
-pigeon -torv3 false
+$ git clone https://github.com/ciehanski/pigeon .
+$ cd pigeon && make build
 ```
 
-#### Remote Port
+## Usage
 
-Modify the port used to connect to the Tor hidden service. By
-default is 80.
-
-```bash
-pigeon -port 8080
-```
-
-#### Debug
-
-Runs pigeon in debug mode. If you want to stare at endless prompts
-make sure to set this flag. If you're contributing this may come
-in handy. :)
+Once you have the `pigeon` binary simply make it executable and run it with the various flags
+provided:
 
 ```bash
-pigeon -debug
+$ chmod +x pigeon 
+$ ./pigeon -port 8080 -debug
+
+    -port <int> : tell pigeon which port to make your onion service remotely
+    available on.
+
+    -torv3 <bool> : tell pigeon to run on torv3 or torv2.
+
+    -debug <bool> : tell pigeon to print debug logs or silence logs.
 ```
 
 ## Contributing:
 
-Any pull request submitted must meet the following requirements:
-- Have included tests applicable to the relevant PR.
-- Attempt to adhere to the standard library as much as possible.
+Contributions and PRs are welcome!
 
 You can get started by either forking or cloning the repo. After, you can get started
 by running:
@@ -85,3 +83,5 @@ make lint
 
 ## License
 - AGPLv3
+
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fciehanski%2Fpigeon.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fciehanski%2Fpigeon?ref=badge_large)
