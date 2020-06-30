@@ -83,4 +83,5 @@ make lint
 
 ## License
 - AGPLv3
+
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fciehanski%2Fpigeon.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fciehanski%2Fpigeon?ref=badge_large)
