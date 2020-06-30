@@ -6,11 +6,10 @@ restart: stop run
 reset: # Refreshes base pigeon docker image and restarts the project
 	docker rmi -f pigeon_pigeon:latest
 	docker-compose up -d
-build: # Builds the pigeon artifact and copies it to the docker container's host
-	docker exec pigeon bash -c \
-		"cd cmd/piegon ; \
-		CGO_ENABLED=1 GO111MODULE=on GOARCH=amd64 GOOS=linux go build -a -installsuffix cgo -ldflags '-s' -o pigeon-linux .  ; \
-		exit"
+build: # Builds the pigeon artifact
+	go get -u -a -v -x github.com/ipsn/go-libtor
+	go mod download
+	cd cmd/pigeon && CGO_ENABLED=1 go build -a -installsuffix cgo -ldflags '-s' -o pigeon .
 logs: # Prints docker-compose logs
 	docker-compose logs -f --tail 100 pigeon
 exec: # Open a bash shell into the docker container
