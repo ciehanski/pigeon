@@ -66,6 +66,8 @@ github.com/ipsn/go-libtor v1.0.289 h1:LpeYYcVMiAVD0WQcMY8Wi+lbt3YrUggHxLbew/Nwol
 github.com/ipsn/go-libtor v1.0.289/go.mod h1:6rIeHU7irp8ZH8E/JqaEOKlD6s4vSSUh4ngHelhlSMw=
 github.com/ipsn/go-libtor v1.0.294 h1:z/X6MnjHtcg+R1tXq2SxsWj06vkssNzNQ8Jkdb5yP6U=
 github.com/ipsn/go-libtor v1.0.294/go.mod h1:6rIeHU7irp8ZH8E/JqaEOKlD6s4vSSUh4ngHelhlSMw=
+github.com/ipsn/go-libtor v1.0.305 h1:mo9hc/3hhu3L903ZPm3mukrEEfp8DymRtdWlWsUWvvo=
+github.com/ipsn/go-libtor v1.0.305/go.mod h1:6rIeHU7irp8ZH8E/JqaEOKlD6s4vSSUh4ngHelhlSMw=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
